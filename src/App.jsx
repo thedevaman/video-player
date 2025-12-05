@@ -1,4 +1,4 @@
-import { Maximize, Pause, Play, Plus, Volume2Icon } from "lucide-react";
+import { Maximize, Pause, Play, Plus, Volume2Icon, VolumeX } from "lucide-react";
 import React, { useRef, useState } from "react";
 
 const App = () => {
@@ -9,6 +9,8 @@ const App = () => {
   const [duration,setDuration] = useState("00:00")
   const [currentTime,setCurrentTime] = useState("00:00")
   const [progress,setProgress] = useState(0)
+  const [muted,setMuted] = useState(false)
+  const containerRef = useRef(null)
 
 
 //used for play pause
@@ -31,6 +33,7 @@ const App = () => {
     const file = input.files[0]
    const url = URL.createObjectURL(file)
    setSrc(url)
+    mutecontrol()
   }
 
   //use for on load
@@ -43,6 +46,7 @@ const App = () => {
        const video = e.currentTarget
     const duration = (video.duration/60).toFixed(2)
     setDuration(duration)
+   
   }
 
   //used for changing running time of video
@@ -55,9 +59,33 @@ const App = () => {
      setProgress(p)
   }
 
+  const mutecontrol = ()=>{
+    const video = videoRef.current
+    if(video.muted)
+    {
+      video.muted = false
+      setMuted(false)
+  }else{
+    video.muted = true
+    setMuted(true)
+  }
+  }
+
+  const togglescreen = ()=>{
+    const div = containerRef.current
+    if(document.fullscreenElement)
+    {
+    document.exitFullscreen()
+    }else{
+    div.requestFullscreen()
+    }
+
+
+  } 
+
   return(
   <div className="bg-gray-950 h-screen flex items-center justify-center">
-   <div className="w-9/12 relative">
+   <div className="w-9/12 relative" ref={containerRef}>
     <video ref={videoRef} src={src} className="w-full" 
       onLoadedMetadata ={onloadedmetadata}
       onTimeUpdate={ontimeupdate}
@@ -92,10 +120,15 @@ const App = () => {
 
      
      <div className="px-6 py-4 space-x-6">
-       <button className="bg-gradient-to-br from-orange-500 via-rose-400 to-orange-500 p-3 rounded text-white shadow-lg active:scale-80 duration-300">
+       <button onClick={mutecontrol} className="bg-gradient-to-br from-orange-500 via-rose-400 to-orange-500 p-3 rounded text-white shadow-lg active:scale-80 duration-300">
+       {
+        muted?
+        <VolumeX/>
+        :
         <Volume2Icon/>
+       }
       </button>
-      <button className="bg-gradient-to-br from-orange-500 via-rose-400 to-orange-500 p-3 rounded text-white shadow-lg active:scale-80 duration-300">
+      <button onClick={togglescreen} className="bg-gradient-to-br from-orange-500 via-rose-400 to-orange-500 p-3 rounded text-white shadow-lg active:scale-80 duration-300">
        <Maximize/>
       </button>
     </div>
