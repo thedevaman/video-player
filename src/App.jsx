@@ -7,10 +7,12 @@ const App = () => {
   const [src,setSrc] = useState("/sample.mp4")
   const [playing, setPlaying] = useState(false)
   const [duration,setDuration] = useState("00:00")
-  const [currentTime,setCurrentTime] = useState("00:00")
+  const [currentTime,setCurrentTime] = useState(0)
   const [progress,setProgress] = useState(0)
   const [muted,setMuted] = useState(false)
   const containerRef = useRef(null)
+  const divRef = useRef(null)
+  const [seeking,setSeeking] = useState(false)
 
 
 //used for play pause
@@ -20,9 +22,11 @@ const App = () => {
     {
     video.play()
     setPlaying(true)
+    
     }else{
       video.pause()
       setPlaying(false)
+     
     }
 
   }
@@ -44,7 +48,7 @@ const App = () => {
    
       }
        const video = e.currentTarget
-    const duration = (video.duration/60).toFixed(2)
+    const duration = (video.duration).toFixed(2)
     setDuration(duration)
    
   }
@@ -52,8 +56,9 @@ const App = () => {
   //used for changing running time of video
 
   const ontimeupdate = (e)=>{
+   if(seeking) return
      const video = e.currentTarget
-     const time = (video.currentTime/60).toFixed(2)
+     const time = (video.currentTime).toFixed(2)
      const p = (time/duration)*100
      setCurrentTime(time)
      setProgress(p)
@@ -83,6 +88,25 @@ const App = () => {
 
   } 
 
+  const forwardVideo = (e)=>{
+    setSeeking(true)
+    const x = e.clientX
+    const y = e.clientY
+    const div = divRef.current
+    const rec = div.getBoundingClientRect()
+    const leftPosition = Math.max(0,Math.round(x - rec.x))
+    // setDuration(leftPosition)
+   const progressPercentage = ((leftPosition/rec.width)*100).toFixed(2)
+   setProgress(progressPercentage)
+   const video = videoRef.current
+   const video_duration = (video.duration).toFixed(2)
+   const clickedDuration = ((progressPercentage/100)*video_duration).toFixed(2)
+   video.currentTime = clickedDuration
+   setCurrentTime(clickedDuration)
+   setSeeking(false)
+
+  }
+
   return(
   <div className="bg-gray-950 h-screen flex items-center justify-center">
    <div className="w-9/12 relative" ref={containerRef}>
@@ -111,8 +135,8 @@ const App = () => {
       </button>
 
       <div className="text-white w-full flex gap-6">
-        <label className="font-medium">{currentTime}/{duration}</label>
-        <div className="bg-white flex-1">
+        <label className="font-medium">{(currentTime/60).toFixed(2)}/{(duration/60).toFixed(2)}</label>
+        <div ref={divRef} className="bg-white flex-1" onClick={forwardVideo}>
           <div className="bg-gradient-to-br from-orange-500 via-rose-400 to-orange-500 h-full" style={{width:progress+'%'}}></div>
         </div>
       </div>
